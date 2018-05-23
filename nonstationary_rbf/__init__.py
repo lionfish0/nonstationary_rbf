@@ -11,7 +11,7 @@ class NonstationaryRBF(Kern): #todo do I need to inherit from Stationary
     Integral kernel between...
     """
 
-    def __init__(self, input_dim, variances=None, lengthscale=None, ARD=False, active_dims=None, lengthscalefun=None, name='nonstatRBF'):
+    def __init__(self, input_dim, variances=1.0, lengthscale=1.0, ARD=False, active_dims=None, lengthscalefun=None, name='nonstatRBF'):
         super(NonstationaryRBF, self).__init__(input_dim, active_dims, name)
 
         if lengthscale is None:
@@ -26,6 +26,7 @@ class NonstationaryRBF(Kern): #todo do I need to inherit from Stationary
         self.lengthscale = Param('lengthscale', lengthscale, Logexp()) #Logexp - transforms to allow positive only values...
         self.variances = Param('variances', variances, Logexp()) #and here.
         self.link_parameters(self.variances, self.lengthscale) #this just takes a list of parameters we need to optimise.
+        
 
     def update_gradients_full(self, dL_dK, X, X2):
         pass
@@ -55,7 +56,7 @@ class NonstationaryRBF(Kern): #todo do I need to inherit from Stationary
             for j,x2 in enumerate(X2):
                 #print(x1,x2)
                 k[i,j] = self.kxx(x1,x2)
-        return k
+        return self.variances*k
 
     def Kdiag(self, X):
         return np.diag(self.K(X))
