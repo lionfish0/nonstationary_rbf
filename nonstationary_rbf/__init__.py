@@ -32,21 +32,15 @@ class NonstationaryRBF(Kern): #todo do I need to inherit from Stationary
         pass
     
     def kxx(self,X1,X2):
-        p = 1
-        for i,(x1,x2) in enumerate(zip(X1,X2)):
-            p*= np.sqrt((2*self.lengthscalefun(X1,i)*self.lengthscalefun(X2,i))/(self.lengthscalefun(X1,i)**2*self.lengthscalefun(X2,i)**2))
-        s = 0
-        for i,(x1,x2) in enumerate(zip(X1,X2)):
-            s+=(-(x1-x2)**2/(self.lengthscalefun(X1,i)**2+self.lengthscalefun(X2,i)**2))
-        return p*np.exp(s)
         
-        
-    def old_kxx(self,X1,X2):
-        s = 0
-        for x1,x2 in zip(X1,X2):
-            s+=np.exp(-(x1-x2)**2/2)
-        #print(X1,X2,s)
-        return s
+        assert isinstance(self.lengthscalefun(X1,0),float), "The lengthscalefunction should return a single, scalar, positive value." #this should only return one lengthscale
+        p = 1.0
+        s = 0.0
+        for i,(x1,x2) in enumerate(zip(X1,X2)):
+            s+=((x1-x2)**2/(self.lengthscalefun(X1,i)**2+self.lengthscalefun(X2,i)**2))
+            p*= np.sqrt((2.0*self.lengthscalefun(X1,i)*self.lengthscalefun(X2,i))/(self.lengthscalefun(X1,i)**2+self.lengthscalefun(X2,i)**2))
+        return self.variances*p*np.exp(-s)
+
     
     def K(self, X, X2=None):
         if X2 is None:
@@ -54,7 +48,6 @@ class NonstationaryRBF(Kern): #todo do I need to inherit from Stationary
         k = np.zeros([X.shape[0],X2.shape[0]])
         for i,x1 in enumerate(X):
             for j,x2 in enumerate(X2):
-                #print(x1,x2)
                 k[i,j] = self.kxx(x1,x2)
         return self.variances*k
 
